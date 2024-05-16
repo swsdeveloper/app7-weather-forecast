@@ -1,26 +1,27 @@
 import streamlit as st
-import pandas as pd
+import plotly.express as px
+from get_data import get_data
 
 st.set_page_config(layout="wide")
 
 st.title("Weather Forecast for the Next Days")
 
-cities = ['New York', 'Rome', 'Paris']
+place = st.text_input("Place:")
 
-city = st.text_input("Place:", key="city")  # , on_change=qqq)
-days = st.slider('Forecast Days', min_value=1, max_value=5)
+days = st.slider('Forecast Days', min_value=1, max_value=5,
+                 help="Select the number of forecasted days")
+
+options = ["Temperature", "Sky"]
+choice = st.selectbox("Select data to view", options=options)
 
 period = f"{days} days"
 if days == 1:
     period = "day"
 
-options = ["Temperature", "Weather"]
-choice = st.selectbox("Select data to view", options=options)  # , on_change=qqq)
+st.subheader(f"{choice} for the next {period} in {place}")
 
-if choice == "Temperature":
-    st.header(f"Temperature for the next {period} in {city}")
-    # st.line_chart(x="Date", y="Temperature (C)")
-else:
-    st.header(f"Weather for the next {period} in {city}")
+d, t = get_data(days)
 
-# st.session_state.city
+# Create a Plotly figure (line graph)
+figure = px.line(x=d, y=t, labels={"x": "Dates", "y": "Temperature (C)"})
+st.plotly_chart(figure, use_container_width=True)
