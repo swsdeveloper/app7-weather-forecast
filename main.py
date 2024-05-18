@@ -1,6 +1,6 @@
 import streamlit as st
 import plotly.express as px
-from get_data import get_data
+from backend import get_data
 
 st.set_page_config(layout="wide")
 
@@ -20,7 +20,7 @@ if days == 1:
 
 st.subheader(f"{choice} for the next {period} in {place}")
 
-d, t = get_data(days)
+d, t = get_data(place, days, choice)
 
 # Create a Plotly figure (line graph)
 figure = px.line(x=d, y=t, labels={"x": "Dates", "y": "Temperature (C)"})
