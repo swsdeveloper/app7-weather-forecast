@@ -3,44 +3,36 @@ import requests
 API_KEY = "28c4aaa499ca148dc63af66247d21be4"
 
 
-def get_data(place: str, forecast_days: int, kind: str) -> ():
+def get_data(place: str, forecast_days: int) -> []:
     """
-    Get weather data from openWeatherMap.org:
+    Get weather data from openWeatherMap.org for the specified city (place):
 
-    If kind is "Temperature", returns a list of average temperatures for the
-    specified number of forecast_days in the specified city (place).
+    Forecasts are done every 3 hours, so there are 8 per day. This API
+    returns exactly 5 days worth of forecasts (i.e., 8 x 5 = 40 forecasts).
+    Reduce the number of forecasts to the number of forecast_days passed
+    to this function (i.e., if forecast days=1, keep 8 forecasts; if
+    forecast_days=2, keep 16 forecasts; ...; if forecast_days=5, keep all 40.)
 
-    If kind is "Sky", returns a list of cloud conditions for the specified number
-    of forecast_days in the specified city (place).
-
-    If kind is invalid, returns an empty list.
+    Return the list of forecasts (where each forecast is a dictionary).
 
     :param place: Name of a city.
     :param forecast_days: 1 to 5 (int).
-    :param kind: either "Temperature" or "Sky" (the type of data to get).
-    :return: tuple containing 2 lists. Each list will have `days + 1` number of items.
-             (The +1 is for prepending today's date and temperature)
-             list of dates (format:  "yyyy-mm-dd")
-             list of temperatures (ints)
+    :return: List of forecast dictionaries.
+             If an error occurs, return an empty list.
     """
-    # Create temporary data for Plotly:
-    # ---------------------------------
-    # today = "2024-05-16"
-    # today_temp = 13
-    # dates = [today, "2024-05-17", "2024-05-18", "2024-05-19", "2024-05-20", "2024-05-21"][:days+1]
-    # temperatures = [today_temp, 10, 11, 14, 12, 11][:forecast_days + 1]
-    # temperatures = [forecast_days * i for i in temperatures]
-    # return dates, temperatures
-
     # Format of API call:
     # api.openweathermap.org/data/2.5/forecast?q={city_NAME}&appid={API key}
 
-    url = f"https://api.openWeatherMap.org/data/2.5/forecast?q={place}&appid={API_KEY}"
+    # Note: This site returns temperature in degrees Kelvin by default (i.e., units=standard).
+    #       To get units in Centigrade, pass "units=metric".
+    #       To get units in Fahrenheit, pass "units=imperial".
+
+    url = f"https://api.openWeatherMap.org/data/2.5/forecast?q={place}&units=imperial&appid={API_KEY}"
 
     response = requests.get(url)
     data = response.json()
 
-    filtered_data = {}
+    filtered_data = []
     if data['cod'] == '200':
         if data['list']:
             filtered_data = data["list"]
@@ -51,27 +43,9 @@ def get_data(place: str, forecast_days: int, kind: str) -> ():
             nr_values = 8 * forecast_days
             filtered_data = filtered_data[:nr_values]  # filtered_data is a list of dictionaries.
 
-            # For Temperature:
-            # Each filtered_data dictionary contains a dictionary with key "main".
-            # Each "main" dictionary contains a key "temp".
-
-            # For Sky:
-            # Each filtered_data dictionary contains a list with key "weather".
-            # That list contains 1 dictionary.
-            # That inner dictionary has a key "main" which returns "Clear" or "Clouds", etc.
-
-            if kind == "Temperature":
-                # Convert filtered_data to a list of temperatures.
-                filtered_data = [fd_dict["main"]["temp"] for fd_dict in filtered_data]
-            elif kind == "Sky":
-                # Convert filtered_data to a list of weather conditions.
-                filtered_data = [fd_dict["weather"][0]["main"] for fd_dict in filtered_data]
-            else:
-                filtered_data = []
-
     return filtered_data
 
 
 if __name__ == '__main__':
-    print(get_data("Tokyo", forecast_days=3, kind="Temperature"))
-    print(get_data("London", forecast_days=2, kind="Sky"))
+    print(get_data("Tokyo", forecast_days=3))
+    print(get_data("London", forecast_days=2))
