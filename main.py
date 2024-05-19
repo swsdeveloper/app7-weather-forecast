@@ -1,6 +1,7 @@
 import streamlit as st
 import plotly.express as px
 from backend import get_data
+from datetime import datetime
 
 images = {
     "Clear": "images/clear.png",
@@ -65,8 +66,12 @@ if place:
             sky_conditions = [fd_dict["weather"][0]["main"] for fd_dict in filtered_data]
             # Convert the strings into image paths.
             sky_images = [images[condition] for condition in sky_conditions]
-            # Display the list of images.
-            st.image(sky_images, caption=sky_conditions, width=150)
+            # Convert date strings into datetime objects.
+            date_times = [datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S") for date_str in dates]
+            # Create captions out of the datetime objects (e.g., "Mon. Jan 22  06:00 AM")
+            captions = [date_time.strftime("%a. %b %d  %I:%M %p") for date_time in date_times]
+            # Display the list of images and captions.
+            st.image(sky_images, caption=captions, width=150)
 
         else:
             st.error("*** Invalid Choice ***")
