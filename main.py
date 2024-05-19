@@ -25,7 +25,15 @@ if days == 1:
     period = "day"
 
 if place:
-    st.subheader(f"{choice} for the next {period} in {place.title()}")
+    place_parts = place.title().split(",")  # capitalize each word
+    for index, part in enumerate(place_parts):
+        part = part.strip()
+        if 2 <= len(part) <= 3:
+            part = part.upper()  # make state code and/or country abbreviation uppercase
+        place_parts[index] = part
+    adjusted_place = ", ".join(place_parts)
+
+    st.subheader(f"{choice} for the next {period} in: {adjusted_place}")
 
     # Get Temperature or Sky data (as a list of dictionaries)
     filtered_data = get_data(place, forecast_days=days)
